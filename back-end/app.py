@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 from flask import Flask, request, jsonify, make_response
+from keybert import KeyBERT
 import nltk
 from rake_nltk import Rake
 
@@ -13,9 +14,14 @@ CORS(app)
 def extract():
     doc = request.json['text']
     num = request.json['keywords']
-    rake = Rake()
-    rake.extract_keywords_from_text(doc)
-    rst = rake.get_ranked_phrases()[:int(num)]
+    model = request.json['model']
+    if model == 'rake':
+        rake = Rake()
+        rake.extract_keywords_from_text(doc)
+        rst = rake.get_ranked_phrases()[:int(num)]
+    else:
+        bert = KeyBERT()
+        rst = bert.extract_keywords(doc, top_n=int(num))
     return make_response(jsonify(rst), 200)
 
 if __name__ == '__main__':
